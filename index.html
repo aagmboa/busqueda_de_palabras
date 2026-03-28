@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>Word Search</title>
+  <style>
+    body { 
+      font-family: Arial, sans-serif; 
+      background: #0a0a15; 
+      color: white; 
+      padding: 10px;
+      margin: 0;
+    }
+    #gameFrame {
+      max-width: 700px;
+      margin: 0 auto;
+      background: #16213e;
+      border-radius: 15px;
+      padding: 20px;
+      border: 2px solid #00fff5;
+    }
+    h1 { 
+      text-align: center; 
+      color: #00fff5;
+      margin: 0 0 20px 0;
+    }
+    .lang-screen { text-align: center; padding: 30px; }
+    .option-group { margin: 20px 0; }
+    .option-group h3 { color: #ff0066; margin: 10px 0; }
+    .option-btn {
+      padding: 12px 30px;
+      font-size: 18px;
+      margin: 5px;
+      background: #16213e;
+      color: #00fff5;
+      border: 2px solid #00fff5;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .option-btn:hover { background: #00fff5; color: #16213e; }
+    .option-btn.selected { background: #00fff5; color: #16213e; }
+    .level-btn { font-size: 16px; padding: 10px 20px; }
+    .lang-btn {
+      padding: 15px 40px;
+      font-size: 20px;
+      margin: 10px;
+      background: #16213e;
+      color: #00fff5;
+      border: 2px solid #00fff5;
+      border-radius: 10px;
+      cursor: pointer;
+    }
+    .lang-btn:hover { background: #00fff5; color: #16213e; }
+    .theme-btn {
+      padding: 10px 20px;
+      font-size: 14px;
+      margin: 3px;
+      background: #16213e;
+      color: #00fff5;
+      border: 1px solid #00fff5;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .theme-btn:hover { background: #00fff5; color: #16213e; }
+    .game-screen { display: none; }
+    .game-screen.active { display: block; }
+    #levelIndicator { 
+      text-align: center; 
+      color: #ffcc00; 
+      font-size: 14px; 
+      margin-bottom: 10px;
+    }
+    #gridContainer { 
+      display: flex; 
+      justify-content: center; 
+      margin: 20px 0; 
+    }
+    #grid { 
+      display: grid; 
+      grid-template-columns: repeat(15, 32px); 
+      gap: 2px;
+      background: #0f0f23;
+      padding: 5px;
+      border-radius: 8px;
+    }
+    .cell {
+      width: 32px;
+      height: 32px;
+      background: #234567;
+      border: 1px solid #00fff5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      font-weight: bold;
+      color: yellow;
+      cursor: pointer;
+    }
+    .cell:hover { background: #345678; }
+    .cell.selected { background: #ff0066; color: white; }
+    .cell.found { background: #ffcc00; color: black; }
+    #wordList { 
+      display: flex; 
+      flex-wrap: wrap; 
+      gap: 8px; 
+      justify-content: center;
+      margin-top: 20px;
+    }
+    .word-item {
+      padding: 5px 12px;
+      background: #0f0f23;
+      border: 1px solid #00fff5;
+      border-radius: 15px;
+      color: #00fff5;
+    }
+    .word-item.found {
+      background: #ffcc00;
+      color: black;
+      text-decoration: line-through;
+    }
+    #header { 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center; 
+      margin-bottom: 15px;
+    }
+    #counter { font-size: 18px; color: #00fff5; }
+    #timer { font-size: 18px; color: #ffcc00; }
+    #gameInfo { display: flex; justify-content: space-between; margin-bottom: 10px; }
+    .btn {
+      padding: 8px 16px;
+      background: #ff0066;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .btn-sec {
+      background: transparent;
+      border: 1px solid #00fff5;
+      color: #00fff5;
+    }
+    #instructionsBtn, #backBtn {
+      margin-top: 15px;
+      padding: 10px 25px;
+      background: transparent;
+      border: 1px solid #ff0066;
+      color: #ff0066;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    #instructionsModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.8);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    #instructionsModal.show { display: flex; }
+    #instructionsContent {
+      background: #16213e;
+      border: 2px solid #00fff5;
+      padding: 30px;
+      border-radius: 15px;
+      max-width: 400px;
+      text-align: center;
+    }
+    #instructionsContent h2 { color: #00fff5; }
+    #instructionsContent p { margin: 10px 0; line-height: 1.6; }
+    #victory {
+      display: none;
+      text-align: center;
+      padding: 20px;
+      background: linear-gradient(135deg, #00fff522, #ff006622);
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    #victory.show { display: block; }
+    #victory h2 { color: #ffcc00; }
+    #themeModal {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.9);
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+      overflow: auto;
+    }
+    #themeModal.show { display: flex; }
+    #themeContent {
+      background: #16213e;
+      border: 2px solid #00fff5;
+      padding: 20px;
+      border-radius: 15px;
+      max-width: 500px;
+      text-align: center;
+    }
+    #themeContent h2 { color: #00fff5; margin-bottom: 15px; }
+    #themeList { max-height: 400px; overflow-y: auto; }
+    .theme-option {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      margin: 5px 0;
+      background: #0f0f23;
+      color: #00fff5;
+      border: 1px solid #00fff5;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+    .theme-option:hover { background: #00fff5; color: #16213e; }
+    #closeThemeBtn { margin-top: 15px; }
+    @media (max-width: 600px) {
+      #grid { grid-template-columns: repeat(15, 22px); }
+      .cell { width: 22px; height: 22px; font-size: 11px; }
+      .option-btn { font-size: 14px; padding: 10px 15px; }
+    }
+  </style>
+</head>
+<body>
+  <div id="gameFrame">
+    <!-- Pantalla de selección -->
+    <div id="langScreen" class="lang-screen">
+      <h1>Word Search</h1>
+      
+      <div class="option-group">
+        <h3 id="langLabel">Idioma / Language</h3>
+        <button class="lang-btn" id="btnEs">Español</button>
+        <button class="lang-btn" id="btnEn">English</button>
+      </div>
+      
+      <div class="option-group" id="difficultyGroup">
+        <h3 id="difficultyLabel">Nivel / Level</h3>
+        <button class="option-btn level-btn" id="btnFacil">Fácil</button>
+        <button class="option-btn level-btn" id="btnNormal">Normal</button>
+        <button class="option-btn level-btn" id="btnDificil">Difícil</button>
+      </div>
+      
+      <button class="option-btn" id="themeBtn" style="margin-top:20px;">Temático</button>
+      <br>
+      <button id="instructionsBtn">Instrucciones</button>
+    </div>
+    
+    <!-- Pantalla de juego -->
+    <div id="gameScreen" class="game-screen">
+      <div id="header">
+        <h1>Word Search</h1>
+        <div>
+          <button class="btn btn-sec" id="langToggle">EN</button>
+          <button class="btn" id="newGameBtn">Nuevo</button>
+          <button class="btn btn-sec" id="exitBtn">Salir</button>
+        </div>
+      </div>
+      <div id="levelIndicator"></div>
+      <div id="gameInfo">
+        <div id="counter">Palabras restantes: <span id="remainingCount">10</span></div>
+        <div id="timer">Tiempo: <span id="timeDisplay">0:00</span></div>
+      </div>
+      
+      <div id="victory">
+        <h2 id="victoryText">¡Felicitaciones!</h2>
+        <button class="btn" id="playAgainBtn">Jugar de nuevo</button>
+      </div>
+      
+      <div id="gridContainer">
+        <div id="grid"></div>
+      </div>
+      
+      <div id="wordList"></div>
+    </div>
+  </div>
+  
+  <!-- Modal de instrucciones -->
+  <div id="instructionsModal">
+    <div id="instructionsContent">
+      <h2 id="instrTitle">Cómo Jugar</h2>
+      <p id="instrText1">Encuentra las palabras ocultas en la cuadrícula.</p>
+      <p id="instrText2">Las palabras pueden estar en diferentes direcciones según el nivel:</p>
+      <p id="instrEasy" style="color:#00ff00;">Fácil: solo horizontal →</p>
+      <p id="instrNormal" style="color:#ffff00;">Normal: horizontal →, diagonal ↘, vertical ↓</p>
+      <p id="instrHard" style="color:#ff6666;">Difícil: todas las direcciones</p>
+      <p id="instrSelect">Haz clic en una letra y arrastra hasta la última letra.</p>
+      <button class="btn" id="closeInstr">Entendido</button>
+    </div>
+  </div>
+  
+  <!-- Modal de temáticas -->
+  <div id="themeModal">
+    <div id="themeContent">
+      <h2 id="themeTitle">Elige un tema</h2>
+      <div id="themeList"></div>
+      <button class="btn" id="closeThemeBtn">Cerrar</button>
+    </div>
+  </div>
+
+  <script>
+var WORDS_DB = [
+// Alimentos
+{es:"Fideos",en:"Noodles"},{es:"Arroz",en:"Rice"},{es:"Asado",en:"Roast"},{es:"Chorizo",en:"Chorizo"},{es:"Harina",en:"Flour"},{es:"Poroto",en:"Beans"},{es:"Albondiga",en:"Meatball"},{es:"Pizza",en:"Pizza"},{es:"Pollo",en:"Chicken"},{es:"Sopa",en:"Soup"},
+// Paises
+{es:"Chile",en:"Chile"},{es:"China",en:"China"},{es:"Japon",en:"Japan"},{es:"Italia",en:"Italy"},{es:"Turquia",en:"Turkey"},{es:"Paquistan",en:"Pakistan"},{es:"Francia",en:"France"},{es:"Brasil",en:"Brazil"},{es:"Argentina",en:"Argentina"},{es:"Colombia",en:"Colombia"},
+// Mamiferos
+{es:"Elefante",en:"Elephant"},{es:"Ardilla",en:"Squirrel"},{es:"Gallo",en:"Rooster"},{es:"Liebre",en:"Hare"},{es:"Pato",en:"Duck"},{es:"Cabra",en:"Goat"},{es:"Pavo",en:"Turkey"},{es:"Caballo",en:"Horse"},{es:"Cebra",en:"Zebra"},{es:"Puma",en:"Puma"},
+// Profesiones
+{es:"Medico",en:"Doctor"},{es:"Maestra",en:"Teacher"},{es:"Musico",en:"Musician"},{es:"Cantante",en:"Singer"},{es:"Ingeniera",en:"Engineer"},{es:"Profesora",en:"Professor"},{es:"Albañil",en:"Bricklayer"},{es:"Zapatero",en:"Shoemaker"},{es:"Electricista",en:"Electrician"},{es:"Mecanico",en:"Mechanic"},
+// Bebidas
+{es:"Mate",en:"Mate"},{es:"Cafe",en:"Coffee"},{es:"Vino",en:"Wine"},{es:"Cerveza",en:"Beer"},{es:"Gaseosa",en:"Soda"},{es:"Agua",en:"Water"},{es:"Anis",en:"Anise"},{es:"Sidra",en:"Cider"},{es:"Vermut",en:"Vermouth"},{es:"Tequila",en:"Tequila"},
+// Idiomas
+{es:"Español",en:"Spanish"},{es:"Frances",en:"French"},{es:"Ingles",en:"English"},{es:"Chino",en:"Chinese"},{es:"Japones",en:"Japanese"},{es:"Portugues",en:"Portuguese"},{es:"Aleman",en:"German"},{es:"Ruso",en:"Russian"},{es:"Turco",en:"Turkish"},{es:"Noruego",en:"Norwegian"},
+// Capitales Europa
+{es:"Paris",en:"Paris"},{es:"Lisboa",en:"Lisbon"},{es:"Madrid",en:"Madrid"},{es:"Roma",en:"Rome"},{es:"Berlin",en:"Berlin"},{es:"Viena",en:"Vienna"},{es:"Amsterdan",en:"Amsterdam"},{es:"Monaco",en:"Monaco"},{es:"Berna",en:"Bern"},{es:"Atenas",en:"Athens"},
+// Capitales America
+{es:"Ottawa",en:"Ottawa"},{es:"Tegucigalpa",en:"Tegucigalpa"},{es:"Nasau",en:"Nassau"},{es:"Managua",en:"Managua"},{es:"Brasilia",en:"Brasilia"},{es:"Bogota",en:"Bogota"},{es:"Quito",en:"Quito"},{es:"Georgetown",en:"Georgetown"},{es:"Montevideo",en:"Montevideo"},{es:"Lima",en:"Lima"},
+// Animales selva
+{es:"Jaguar",en:"Jaguar"},{es:"Tucan",en:"Toucan"},{es:"Jirafa",en:"Giraffe"},{es:"Gorila",en:"Gorilla"},{es:"Anaconda",en:"Anaconda"},{es:"Yacare",en:"Yacare"},{es:"Tapir",en:"Tapir"},{es:"Caiman",en:"Caiman"},{es:"Leon",en:"Lion"},{es:"Loro",en:"Parrot"},
+// Elementos
+{es:"Hidrogeno",en:"Hydrogen"},{es:"Carbono",en:"Carbon"},{es:"Oxigeno",en:"Oxygen"},{es:"Plata",en:"Silver"},{es:"Hierro",en:"Iron"},{es:"Calcio",en:"Calcium"},{es:"Cloro",en:"Chlorine"},{es:"Neon",en:"Neon"},{es:"Mercurio",en:"Mercury"},{es:"Uranio",en:"Uranium"},
+// Astronomia
+{es:"Mercurio",en:"Mercury"},{es:"Venus",en:"Venus"},{es:"Marte",en:"Mars"},{es:"Jupiter",en:"Jupiter"},{es:"Saturno",en:"Saturn"},{es:"Andromeda",en:"Andromeda"},{es:"Neptuno",en:"Neptune"},{es:"Luna",en:"Moon"},{es:"Cometa",en:"Comet"},{es:"Asteroide",en:"Asteroid"},
+// Flores
+{es:"Orquidea",en:"Orchid"},{es:"Crisantemo",en:"Chrysanthemum"},{es:"Jazmin",en:"Jasmine"},{es:"Margarita",en:"Daisy"},{es:"Tulipan",en:"Tulip"},{es:"Lavanda",en:"Lavender"},{es:"Clavel",en:"Carnation"},{es:"Hortensia",en:"Hydrangea"},{es:"Gardenia",en:"Gardenia"},{es:"Amapola",en:"Poppy"},
+// Fenomenos
+{es:"Tornado",en:"Tornado"},{es:"Huracan",en:"Hurricane"},{es:"Trueno",en:"Thunder"},{es:"Granizo",en:"Hail"},{es:"Lluvia",en:"Rain"},{es:"Arcoiris",en:"Rainbow"},{es:"Ciclon",en:"Cyclone"},{es:"Ventisca",en:"Blizzard"},{es:"Nieve",en:"Snow"},{es:"Monzon",en:"Monsoon"},
+// Dinosaurios
+{es:"Tiranosaurus",en:"Tyrannosaurus"},{es:"Triceratops",en:"Triceratops"},{es:"Raptor",en:"Raptor"},{es:"Diplodocus",en:"Diplodocus"},{es:"Stegosaurus",en:"Stegosaurus"},{es:"Spinosaurus",en:"Spinosaurus"},{es:"Iguanodon",en:"Iguanodon"},{es:"Carnotauro",en:"Carnotaurus"},{es:"Anquilosaurio",en:"Ankylosaurus"},{es:"Pterodactilo",en:"Pterodactyl"},
+// Quesos
+{es:"Parmesano",en:"Parmesan"},{es:"Roquefort",en:"Roquefort"},{es:"Mozzarella",en:"Mozzarella"},{es:"Cheddar",en:"Cheddar"},{es:"Gouda",en:"Gouda"},{es:"Camembert",en:"Camembert"},{es:"Brie",en:"Brie"},{es:"Gruyer",en:"Gruyer"},{es:"Edam",en:"Edam"},{es:"Provolone",en:"Provolone"},
+// Frutas tropicales
+{es:"Mango",en:"Mango"},{es:"Papaya",en:"Papaya"},{es:"Yaca",en:"Yaca"},{es:"Guayaba",en:"Guava"},{es:"Piña",en:"Pineapple"},{es:"Banana",en:"Banana"},{es:"Coco",en:"Coconut"},{es:"Pitaya",en:"Pitaya"},{es:"Lichi",en:"Lychee"},{es:"Guanabana",en:"Soursop"},
+// Especias
+{es:"Canela",en:"Cinnamon"},{es:"Pimienta",en:"Pepper"},{es:"Comino",en:"Cumin"},{es:"Jengibre",en:"Ginger"},{es:"Oregano",en:"Oregano"},{es:"Romero",en:"Rosemary"},{es:"Albahaca",en:"Basil"},{es:"Tomillo",en:"Thyme"},{es:"Azafran",en:"Saffron"},{es:"Curcuma",en:"Turmeric"},
+// Platos tipicos
+{es:"Paella",en:"Paella"},{es:"Sushi",en:"Sushi"},{es:"Pizza",en:"Pizza"},{es:"Tacos",en:"Tacos"},{es:"Ceviche",en:"Ceviche"},{es:"Pasta",en:"Pasta"},{es:"Parrillada",en:"Barbecue"},{es:"Moussaka",en:"Moussaka"},{es:"Goulash",en:"Goulash"},{es:"Risotto",en:"Risotto"},
+// Postres
+{es:"Brownie",en:"Brownies"},{es:"Cheesecake",en:"Cheesecake"},{es:"Tiramisu",en:"Tiramisu"},{es:"Budin",en:"Pudding"},{es:"Churro",en:"Fritter"},{es:"Flan",en:"Custard"},{es:"Macarons",en:"Macarons"},{es:"Gelatina",en:"Gelatin"},{es:"Merengue",en:"Meringue"},{es:"Muffin",en:"Muffin"},
+// Accidentes
+{es:"Peninsula",en:"Peninsula"},{es:"Montana",en:"Mountain"},{es:"Golfo",en:"Gulf"},{es:"Archipielago",en:"Archipelago"},{es:"Estrecho",en:"Strait"},{es:"Meseta",en:"Plateau"},{es:"Llanura",en:"Plain"},{es:"Acantilado",en:"Cliff"},{es:"Valle",en:"Valley"},{es:"Delta",en:"Delta"},
+// Rios
+{es:"Amazonas",en:"Amazon"},{es:"Nilo",en:"Nile"},{es:"Misisipi",en:"Mississippi"},{es:"Danubio",en:"Danube"},{es:"Volga",en:"Volga"},{es:"Ganges",en:"Ganges"},{es:"Parana",en:"Parana"},{es:"Eufrates",en:"Euphrates"},{es:"Yangtse",en:"Yangtze"},{es:"Tajo",en:"Tagus"},
+// Transporte
+{es:"Barco",en:"Boat"},{es:"Dirigible",en:"Airship"},{es:"Tranvia",en:"Tram"},{es:"Helicoptero",en:"Helicopter"},{es:"Velero",en:"Sailboat"},{es:"Cohete",en:"Rocket"},{es:"Tren",en:"Train"},{es:"Canoa",en:"Canoe"},{es:"Camion",en:"Truck"},{es:"Ciclomotor",en:"Motorbike"},
+// Instrumentos
+{es:"Violin",en:"Violin"},{es:"Guitarra",en:"Guitar"},{es:"Saxofon",en:"Saxophone"},{es:"Bateria",en:"Battery"},{es:"Piano",en:"Piano"},{es:"Arpa",en:"Harp"},{es:"Flauta",en:"Flute"},{es:"Trompeta",en:"Trumpet"},{es:"Violonchelo",en:"Cello"},{es:"Ukelele",en:"Ukulele"},
+// Cine
+{es:"Comedia",en:"Comedy"},{es:"Drama",en:"Drama"},{es:"Terror",en:"Horror"},{es:"Musical",en:"Musical"},{es:"Accion",en:"Action"},{es:"Suspenso",en:"Thriller"},{es:"Animacion",en:"Animation"},{es:"Western",en:"Western"},{es:"Fantasia",en:"Fantasy"},{es:"Documental",en:"Documentary"},
+// Heroes
+{es:"Batman",en:"Batman"},{es:"Superman",en:"Superman"},{es:"Joker",en:"Joker"},{es:"Thanos",en:"Thanos"},{es:"Galactus",en:"Galactus"},{es:"Magneto",en:"Magneto"},{es:"Thor",en:"Thor"},{es:"Aquaman",en:"Aquaman"},{es:"Hulk",en:"Hulk"},{es:"Spiderman",en:"Spiderman"},
+// Cuentos
+{es:"Pinocho",en:"Pinocchio"},{es:"Cenicienta",en:"Cinderella"},{es:"Aladino",en:"Aladdin"},{es:"Matilda",en:"Matilda"},{es:"Dobby",en:"Dobby"},{es:"Malefica",en:"Maleficent"},{es:"Gepetto",en:"Gepetto"},{es:"Rapunzel",en:"Rapunzel"},{es:"Simba",en:"Simba"},{es:"Bambi",en:"Bambi"},
+// Deportes
+{es:"Esgrima",en:"Fencing"},{es:"Natacion",en:"Swimming"},{es:"Atletismo",en:"Athletics"},{es:"Ciclismo",en:"Cycling"},{es:"Remo",en:"Rowing"},{es:"Futbol",en:"Soccer"},{es:"Judo",en:"Judo"},{es:"Boxeo",en:"Boxing"},{es:"Vela",en:"Candle"},{es:"Tenis",en:"Tennis"},
+// Emociones
+{es:"Enojo",en:"Anger"},{es:"Tristeza",en:"Sadness"},{es:"Euforia",en:"Euphoria"},{es:"Nostalgia",en:"Nostalgia"},{es:"Miedo",en:"Fear"},{es:"Orgullo",en:"Pride"},{es:"Celos",en:"Jealousy"},{es:"Empatia",en:"Empathy"},{es:"Calma",en:"Calm"},{es:"Rencor",en:"Resentment"},
+// Piedras
+{es:"Diamante",en:"Diamond"},{es:"Esmeralda",en:"Emerald"},{es:"Rubi",en:"Ruby"},{es:"Zafiro",en:"Sapphire"},{es:"Ambar",en:"Amber"},{es:"Cuarzo",en:"Quartz"},{es:"Turquesa",en:"Turquoise"},{es:"Opalo",en:"Opal"},{es:"Jade",en:"Jade"},{es:"Amatista",en:"Amethyst"},
+// Cuerpo
+{es:"Craneo",en:"Skull"},{es:"Femur",en:"Femur"},{es:"Corazon",en:"Heart"},{es:"Pulmon",en:"Lung"},{es:"Higado",en:"Liver"},{es:"Arteria",en:"Artery"},{es:"Musculo",en:"Muscle"},{es:"Cerebro",en:"Brain"},{es:"Vertebra",en:"Vertebra"},{es:"Riñon",en:"Kidney"},
+// Colores (16)
+{es:"verde",en:"green"},{es:"rojo",en:"red"},{es:"azul",en:"blue"},{es:"amarillo",en:"yellow"},
+{es:"negro",en:"black"},{es:"blanco",en:"white"},{es:"naranja",en:"orange"},{es:"violeta",en:"purple"},
+{es:"rosa",en:"pink"},{es:"marron",en:"brown"},{es:"gris",en:"gray"},{es:"dorado",en:"gold"},
+{es:"plata",en:"silver"},{es:"lila",en:"lilac"},{es:"turquesa",en:"turquoise"},{es:"carmesi",en:"crimson"},
+// Familia (20)
+{es:"familia",en:"family"},{es:"madre",en:"mother"},{es:"padre",en:"father"},{es:"hermano",en:"brother"},{es:"hermana",en:"sister"},
+{es:"hijo",en:"son"},{es:"hija",en:"daughter"},{es:"abuelo",en:"grandfather"},{es:"abuela",en:"grandmother"},{es:"tio",en:"uncle"},
+{es:"tia",en:"aunt"},{es:"primo",en:"cousin"},{es:"sobrino",en:"nephew"},{es:"sobrina",en:"niece"},{es:"nieto",en:"grandson"},
+{es:"nieta",en:"granddaughter"},{es:"esposo",en:"husband"},{es:"esposa",en:"wife"},{es:"novio",en:"boyfriend"},{es:"novia",en:"girlfriend"},
+// Profesiones (24)
+{es:"doctor",en:"doctor"},{es:"enfermero",en:"nurse"},{es:"policia",en:"police"},{es:"maestro",en:"teacher"},{es:"estudiante",en:"student"},
+{es:"ingeniero",en:"engineer"},{es:"abogado",en:"lawyer"},{es:"dentista",en:"dentist"},{es:"arquitecto",en:"architect"},{es:"medico",en:"physician"},
+{es:"cientifico",en:"scientist"},{es:"musico",en:"musician"},{es:"actor",en:"actor"},{es:"escritor",en:"writer"},{es:"artista",en:"artist"},
+{es:"cocinero",en:"cook"},{es:"camarero",en:"waiter"},{es:"cajero",en:"cashier"},{es:"vendedor",en:"seller"},{es:"secretario",en:"secretary"},
+{es:"gerente",en:"manager"},{es:"director",en:"director"},{es:"piloto",en:"pilot"},{es:"astronauta",en:"astronaut"},
+// Deportes (20)
+{es:"futbol",en:"soccer"},{es:"tenis",en:"tennis"},{es:"natacion",en:"swimming"},{es:"baloncesto",en:"basketball"},{es:"beisbol",en:"baseball"},
+{es:"golf",en:"golf"},{es:"boxeo",en:"boxing"},{es:"carrera",en:"race"},{es:"ciclismo",en:"cycling"},{es:"lucha",en:"wrestling"},
+{es:"equipo",en:"team"},{es:"jugador",en:"player"},{es:"torneo",en:"tournament"},{es:"premio",en:"prize"},{es:"medalla",en:"medal"},
+{es:"trofeo",en:"trophy"},{es:"partido",en:"match"},{es:"atleta",en:"athlete"},{es:"entrenador",en:"coach"},{es:"espectador",en:"spectator"},
+{es:"estadio",en:"stadium"},
+// Transportes (20)
+{es:"coche",en:"car"},{es:"tren",en:"train"},{es:"avion",en:"plane"},{es:"barco",en:"ship"},{es:"bicicleta",en:"bicycle"},
+{es:"bus",en:"bus"},{es:"taxi",en:"taxi"},{es:"camion",en:"truck"},{es:"moto",en:"motorcycle"},{es:"ambulancia",en:"ambulance"},
+{es:"patrulla",en:"patrol"},{es:"bomberos",en:"firefighter"},{es:"helicoptero",en:"helicopter"},{es:"submarino",en:"submarine"},{es:"yate",en:"yacht"},
+{es:"ferry",en:"ferry"},{es:"locomotora",en:"locomotive"},{es:"carruaje",en:"carriage"},{es:"remoque",en:"trailer"},{es:"vehículo",en:"vehicle"},
+// Ciudad (24)
+{es:"ciudad",en:"city"},{es:"pueblo",en:"town"},{es:"calle",en:"street"},{es:"plaza",en:"square"},{es:"parque",en:"park"},
+{es:"escuela",en:"school"},{es:"hospital",en:"hospital"},{es:"iglesia",en:"church"},{es:"tienda",en:"store"},{es:"restaurante",en:"restaurant"},
+{es:"hotel",en:"hotel"},{es:"banco",en:"bank"},{es:"oficina",en:"office"},{es:"fabrica",en:"factory"},{es:"museo",en:"museum"},
+{es:"teatro",en:"theater"},{es:"cine",en:"cinema"},{es:"estacion",en:"station"},{es:"aeropuerto",en:"airport"},{es:"puente",en:"bridge"},
+{es:"tunel",en:"tunnel"},{es:"carretera",en:"highway"},{es:"autopista",en:"freeway"},{es:"semaforo",en:"traffic light"},
+// Casa (24)
+{es:"puerta",en:"door"},{es:"ventana",en:"window"},{es:"pared",en:"wall"},{es:"piso",en:"floor"},{es:"techo",en:"roof"},
+{es:"escalera",en:"stairs"},{es:"bano",en:"bathroom"},{es:"cocina",en:"kitchen"},{es:"habitacion",en:"room"},{es:"dormitorio",en:"bedroom"},
+{es:"sala",en:"living room"},{es:"comedor",en:"dining room"},{es:"garaje",en:"garage"},{es:"jardin",en:"garden"},{es:"patio",en:"patio"},
+{es:"mesa",en:"table"},{es:"silla",en:"chair"},{es:"cama",en:"bed"},{es:"sofa",en:"sofa"},{es:"armario",en:"closet"},
+{es:"estante",en:"shelf"},{es:"espejo",en:"mirror"},{es:"lampara",en:"lamp"},{es:"reloj",en:"clock"},
+// Naturaleza (24)
+{es:"montana",en:"mountain"},{es:"rio",en:"river"},{es:"lago",en:"lake"},{es:"mar",en:"sea"},{es:"oceano",en:"ocean"},
+{es:"playa",en:"beach"},{es:"isla",en:"island"},{es:"bosque",en:"forest"},{es:"desierto",en:"desert"},{es:"valle",en:"valley"},
+{es:"cueva",en:"cave"},{es:"volcan",en:"volcano"},{es:"cascada",en:"waterfall"},{es:"pradera",en:"meadow"},{es:"selva",en:"jungle"},
+{es:"nube",en:"cloud"},{es:"viento",en:"wind"},{es:"lluvia",en:"rain"},{es:"nieve",en:"snow"},{es:"tormenta",en:"storm"},
+{es:"trueno",en:"thunder"},{es:"rayo",en:"lightning"},{es:"arcoiris",en:"rainbow"},{es:"estrella",en:"star"},{es:"planeta",en:"planet"},
+// Clima (16)
+{es:"clima",en:"climate"},{es:"sol",en:"sun"},{es:"luna",en:"moon"},{es:"calor",en:"heat"},{es:"frio",en:"cold"},
+{es:"templado",en:"temperate"},{es:"humedo",en:"humid"},{es:"seco",en:"dry"},{es:"ventoso",en:"windy"},{es:"nublado",en:"cloudy"},
+{es:"despejado",en:"clear"},{es:"lluvioso",en:"rainy"},{es:"nevando",en:"snowing"},{es:"soleado",en:"sunny"},{es:"noche",en:"night"},{es:"dia",en:"day"},
+// Números (16)
+{es:"cero",en:"zero"},{es:"uno",en:"one"},{es:"dos",en:"two"},{es:"tres",en:"three"},{es:"cuatro",en:"four"},
+{es:"cinco",en:"five"},{es:"seis",en:"six"},{es:"siete",en:"seven"},{es:"ocho",en:"eight"},{es:"nueve",en:"nine"},
+{es:"diez",en:"ten"},{es:"cien",en:"hundred"},{es:"mil",en:"thousand"},{es:"millon",en:"million"},{es:"primero",en:"first"},{es:"ultimo",en:"last"},
+// Adjetivos (24)
+{es:"nuevo",en:"new"},{es:"viejo",en:"old"},{es:"bueno",en:"good"},{es:"malo",en:"bad"},{es:"grande",en:"big"},
+{es:"pequeno",en:"small"},{es:"alto",en:"tall"},{es:"bajo",en:"short"},{es:"gordo",en:"fat"},{es:"flaco",en:"thin"},
+{es:"fuerte",en:"strong"},{es:"debil",en:"weak"},{es:"rapido",en:"fast"},{es:"lento",en:"slow"},{es:"facil",en:"easy"},
+{es:"dificil",en:"difficult"},{es:"feliz",en:"happy"},{es:"triste",en:"sad"},{es:"hermoso",en:"beautiful"},{es:"feo",en:"ugly"},
+{es:"nuevo",en:"new"},{es:"limpio",en:"clean"},{es:"sucio",en:"dirty"},{es:"lleno",en:"full"},{es:"vacio",en:"empty"},
+// Verbos (24)
+{es:"comer",en:"eat"},{es:"beber",en:"drink"},{es:"dormir",en:"sleep"},{es:"correr",en:"run"},{es:"caminar",en:"walk"},
+{es:"saltar",en:"jump"},{es:"nadar",en:"swim"},{es:"volar",en:"fly"},{es:"hablar",en:"talk"},{es:"escuchar",en:"listen"},
+{es:"ver",en:"see"},{es:"oir",en:"hear"},{es:"leer",en:"read"},{es:"escribir",en:"write"},{es:"pensar",en:"think"},
+{es:"saber",en:"know"},{es:"querer",en:"want"},{es:"poder",en:"can"},{es:"deber",en:"must"},{es:"tener",en:"have"},
+{es:"estar",en:"be"},{es:"ser",en:"to be"},{es:"hacer",en:"do"},{es:"ir",en:"go"},{es:"venir",en:"come"},
+// Tiempo (16)
+{es:"tiempo",en:"time"},{es:"ahora",en:"now"},{es:"antes",en:"before"},{es:"despues",en:"after"},{es:"siempre",en:"always"},
+{es:"nunca",en:"never"},{es:"ayer",en:"yesterday"},{es:"hoy",en:"today"},{es:"manana",en:"tomorrow"},{es:"semana",en:"week"},
+{es:"mes",en:"month"},{es:"ano",en:"year"},{es:"hora",en:"hour"},{es:"minuto",en:"minute"},{es:"segundo",en:"second"},{es:"momento",en:"moment"},
+// Direcciones (12)
+{es:"arriba",en:"up"},{es:"abajo",en:"down"},{es:"derecha",en:"right"},{es:"izquierda",en:"left"},{es:"centro",en:"center"},{es:"frente",en:"front"},
+{es:"atras",en:"behind"},{es:"dentro",en:"inside"},{es:"fuera",en:"outside"},{es:"cerca",en:"near"},{es:"lejos",en:"far"},{es:"lado",en:"side"},
+// Emotions (16)
+{es:"amor",en:"love"},{es:"paz",en:"peace"},{es:"guerra",en:"war"},{es:"vida",en:"life"},{es:"muerte",en:"death"},
+{es:"alegria",en:"joy"},{es:"miedo",en:"fear"},{es:"rabia",en:"anger"},{es:"esperanza",en:"hope"},{es:"sueño",en:"dream"},
+{es:"risa",en:"laugh"},{es:"llanto",en:"cry"},{es:"salud",en:"health"},{es:"enfermedad",en:"illness"},{es:"fuerza",en:"strength"},{es:"dolor",en:"pain"},
+// Objetos (24)
+{es:"libro",en:"book"},{es:"cuaderno",en:"notebook"},{es:"lapiz",en:"pencil"},{es:"pluma",en:"pen"},{es:"mochila",en:"backpack"},
+{es:"carpeta",en:"folder"},{es:"bolsa",en:"bag"},{es:"caja",en:"box"},{es:"candado",en:"lock"},{es:"llave",en:"key"},
+{es:"telefono",en:"phone"},{es:"computadora",en:"computer"},{es:"televisor",en:"television"},{es:"radio",en:"radio"},{es:"camara",en:"camera"},
+{es:"reloj",en:"watch"},{es:"anteojos",en:"glasses"},{es:"zapato",en:"shoe"},{es:"vestido",en:"dress"},{es:"camisa",en:"shirt"},
+{es:"pantalon",en:"pants"},{es:"sombrero",en:"hat"},{es:"guante",en:"glove"},{es:"bufanda",en:"scarf"}
+];
+
+// Temas para el modo temático
+var THEMES = [
+  {name:"Alimentos", words:["Fideos","Arroz","Asado","Chorizo","Harina","Poroto","Albondiga","Pizza","Pollo","Sopa"]},
+  {name:"Paises", words:["Chile","China","Japon","Italia","Turquia","Paquistan","Francia","Brasil","Argentina","Colombia"]},
+  {name:"Mamiferos", words:["Elefante","Ardilla","Gallo","Liebre","Pato","Cabra","Pavo","Caballo","Cebra","Puma"]},
+  {name:"Profesiones", words:["Medico","Maestra","Musico","Cantante","Ingeniera","Profesora","Albañil","Zapatero","Electricista","Mecanico"]},
+  {name:"Bebidas", words:["Mate","Cafe","Vino","Cerveza","Gaseosa","Agua","Anis","Sidra","Vermut","Tequila"]},
+  {name:"Idiomas", words:["Español","Frances","Ingles","Chino","Japones","Portugues","Aleman","Ruso","Turco","Noruego"]},
+  {name:"Capitales Europa", words:["Paris","Lisboa","Madrid","Roma","Berlin","Viena","Amsterdan","Monaco","Berna","Atenas"]},
+  {name:"Capitales America", words:["Ottawa","Tegucigalpa","Nasau","Managua","Brasilia","Bogota","Quito","Georgetown","Montevideo","Lima"]},
+  {name:"Animales selva", words:["Jaguar","Tucan","Jirafa","Gorila","Anaconda","Yacare","Tapir","Caiman","Leon","Loro"]},
+  {name:"Elementos", words:["Hidrogeno","Carbono","Oxigeno","Plata","Hierro","Calcio","Cloro","Neon","Mercurio","Uranio"]},
+  {name:"Astronomia", words:["Mercurio","Venus","Marte","Jupiter","Saturno","Andromeda","Neptuno","Luna","Cometa","Asteroide"]},
+  {name:"Flores", words:["Orquidea","Crisantemo","Jazmin","Margarita","Tulipan","Lavanda","Clavel","Hortensia","Gardenia","Amapola"]},
+  {name:"Fenomenos", words:["Tornado","Huracan","Trueno","Granizo","Lluvia","Arcoiris","Ciclon","Ventisca","Nieve","Monzon"]},
+  {name:"Dinosaurios", words:["Tiranosaurus","Triceratops","Raptor","Diplodocus","Stegosaurus","Spinosaurus","Iguanodon","Carnotauro","Anquilosaurio","Pterodactilo"]},
+  {name:"Quesos", words:["Parmesano","Roquefort","Mozzarella","Cheddar","Gouda","Camembert","Brie","Gruyer","Edam","Provolone"]},
+  {name:"Frutas tropicales", words:["Mango","Papaya","Yaca","Guayaba","Piña","Banana","Coco","Pitaya","Lichi","Guanabana"]},
+  {name:"Especias", words:["Canela","Pimienta","Comino","Jengibre","Oregano","Romero","Albahaca","Tomillo","Azafran","Curcuma"]},
+  {name:"Platos tipicos", words:["Paella","Sushi","Pizza","Tacos","Ceviche","Pasta","Parrillada","Moussaka","Goulash","Risotto"]},
+  {name:"Postres", words:["Brownie","Cheesecake","Tiramisu","Budin","Churro","Flan","Macarons","Gelatina","Merengue","Muffin"]},
+  {name:"Accidentes", words:["Peninsula","Montana","Golfo","Archipielago","Estrecho","Meseta","Llanura","Acantilado","Valle","Delta"]},
+  {name:"Rios", words:["Amazonas","Nilo","Misisipi","Danubio","Volga","Ganges","Parana","Eufrates","Yangtse","Tajo"]},
+  {name:"Transporte", words:["Barco","Dirigible","Tranvia","Helicoptero","Velero","Cohete","Tren","Canoa","Camion","Ciclomotor"]},
+  {name:"Instrumentos", words:["Violin","Guitarra","Saxofon","Bateria","Piano","Arpa","Flauta","Trompeta","Violonchelo","Ukelele"]},
+  {name:"Cine", words:["Comedia","Drama","Terror","Musical","Accion","Suspenso","Animacion","Western","Fantasia","Documental"]},
+  {name:" Heroes", words:["Batman","Superman","Joker","Thanos","Galactus","Magneto","Thor","Aquaman","Hulk","Spiderman"]},
+  {name:"Cuentos", words:["Pinocho","Cenicienta","Aladino","Matilda","Dobby","Malefica","Gepetto","Rapunzel","Simba","Bambi"]},
+  {name:"Deportes", words:["Esgrima","Natacion","Atletismo","Ciclismo","Remo","Futbol","Judo","Boxeo","Vela","Tenis"]},
+  {name:"Emociones", words:["Enojo","Tristeza","Euforia","Nostalgia","Miedo","Orgullo","Celos","Empatia","Calma","Rencor"]},
+  {name:"Piedras", words:["Diamante","Esmeralda","Rubi","Zafiro","Ambar","Cuarzo","Turquesa","Opalo","Jade","Amatista"]},
+  {name:"Cuerpo", words:["Craneo","Femur","Corazon","Pulmon","Higado","Arteria","Musculo","Cerebro","Vertebra","Riñon"]}
+];
+
+var GRID_SIZE = 15;
+var WORDS_PER_GAME = 10;
+var currentLang = 'es';
+var currentLevel = 'facil';
+var isThematic = false;
+var currentTheme = null;
+var words = [];
+var grid = [];
+var foundWords = [];
+var selecting = false;
+var selectionStart = null;
+var selectionEnd = null;
+var selectedCells = [];
+var gameTimer = null;
+var secondsElapsed = 0;
+
+var LETTERS = 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ';
+
+// Direcciones por nivel
+var DIRECTIONS = {
+  facil: [[0, 1]],                    // Solo horizontal izquierda-derecha
+  normal: [[0, 1], [1, 1], [1, 0]],   // Horizontal, diagonal, vertical
+  dificil: [[0, 1], [0, -1], [1, 0], [-1, 0], [1, 1], [1, -1], [-1, 1], [-1, -1]]  // Todas
+};
+
+function getRandomLetter() {
+  return LETTERS[Math.floor(Math.random() * LETTERS.length)];
+}
+
+function selectLanguage(lang) {
+  currentLang = lang;
+  document.getElementById('langScreen').style.display = 'none';
+  document.getElementById('gameScreen').classList.add('active');
+  newGame();
+  updateExitButtonText();
+}
+
+function selectLevel(level) {
+  currentLevel = level;
+  document.getElementById('langScreen').style.display = 'none';
+  document.getElementById('gameScreen').classList.add('active');
+  isThematic = false;
+  currentTheme = null;
+  newGame();
+  updateExitButtonText();
+}
+
+function selectTheme(themeIndex) {
+  currentTheme = THEMES[themeIndex];
+  isThematic = true;
+  currentLevel = 'normal';
+  document.getElementById('themeModal').classList.remove('show');
+  document.getElementById('langScreen').style.display = 'none';
+  document.getElementById('gameScreen').classList.add('active');
+  newGame();
+  updateExitButtonText();
+}
+
+function newGame() {
+  var history = {games:[], last5Words:[]};
+  try { history = JSON.parse(localStorage.getItem('wordSearchHistory')) || history; } catch(e) {}
+  
+  var excluded = history.last5Words || [];
+  
+  if (isThematic && currentTheme) {
+    // Modo temático: usar palabras del tema
+    words = [];
+    for (var i = 0; i < currentTheme.words.length; i++) {
+      var w = currentTheme.words[i];
+      var found = WORDS_DB.find(function(item) { return item.es === w; });
+      if (found) words.push(found);
+    }
+  } else {
+    // Modo normal: palabras aleatorias de más de 3 letras
+    var available = WORDS_DB.filter(function(w) { 
+      return excluded.indexOf(w.es) === -1 && w.es.length >= 4; 
+    });
+    
+    words = [];
+    for (var i = 0; i < WORDS_PER_GAME && available.length > 0; i++) {
+      var idx = Math.floor(Math.random() * available.length);
+      words.push(available.splice(idx, 1)[0]);
+    }
+  }
+  
+  foundWords = [];
+  grid = [];
+  for (var r = 0; r < GRID_SIZE; r++) {
+    grid[r] = [];
+    for (var c = 0; c < GRID_SIZE; c++) {
+      grid[r][c] = '';
+    }
+  }
+  
+  placeWords();
+  fillEmptyCells();
+  renderGrid();
+  renderWordList();
+  updateCounter();
+  updateLevelIndicator();
+  document.getElementById('victory').classList.remove('show');
+  startTimer();
+}
+
+function startTimer() {
+  if (gameTimer) clearInterval(gameTimer);
+  secondsElapsed = 0;
+  document.getElementById('timeDisplay').textContent = '0:00';
+  gameTimer = setInterval(function() {
+    secondsElapsed++;
+    var mins = Math.floor(secondsElapsed / 60);
+    var secs = secondsElapsed % 60;
+    document.getElementById('timeDisplay').textContent = mins + ':' + (secs < 10 ? '0' : '') + secs;
+  }, 1000);
+}
+
+function stopTimer() {
+  if (gameTimer) {
+    clearInterval(gameTimer);
+    gameTimer = null;
+  }
+}
+
+function placeWords() {
+  var dirs = DIRECTIONS[currentLevel];
+  if (!dirs) dirs = DIRECTIONS['dificil'];
+  
+  for (var w = 0; w < words.length; w++) {
+    var word = words[w].es.toUpperCase();
+    var placed = false;
+    var attempts = 0;
+    
+    while (!placed && attempts < 100) {
+      var dir = dirs[Math.floor(Math.random() * dirs.length)];
+      var row = Math.floor(Math.random() * GRID_SIZE);
+      var col = Math.floor(Math.random() * GRID_SIZE);
+      
+      if (canPlace(word, row, col, dir)) {
+        for (var i = 0; i < word.length; i++) {
+          grid[row + i * dir[0]][col + i * dir[1]] = word[i];
+        }
+        placed = true;
+      }
+      attempts++;
+    }
+  }
+}
+
+function canPlace(word, row, col, dir) {
+  if (row + dir[0] * (word.length - 1) < 0 || row + dir[0] * (word.length - 1) >= GRID_SIZE ||
+      col + dir[1] * (word.length - 1) < 0 || col + dir[1] * (word.length - 1) >= GRID_SIZE) {
+    return false;
+  }
+  for (var i = 0; i < word.length; i++) {
+    var r = row + i * dir[0];
+    var c = col + i * dir[1];
+    if (grid[r][c] !== '' && grid[r][c] !== word[i]) return false;
+  }
+  return true;
+}
+
+function fillEmptyCells() {
+  for (var r = 0; r < GRID_SIZE; r++) {
+    for (var c = 0; c < GRID_SIZE; c++) {
+      if (grid[r][c] === '') grid[r][c] = getRandomLetter();
+    }
+  }
+}
+
+function renderGrid() {
+  var html = '';
+  for (var r = 0; r < GRID_SIZE; r++) {
+    for (var c = 0; c < GRID_SIZE; c++) {
+      html += '<div class="cell" data-row="'+r+'" data-col="'+c+'">'+grid[r][c]+'</div>';
+    }
+  }
+  document.getElementById('grid').innerHTML = html;
+  
+  var cells = document.querySelectorAll('.cell');
+  for (var i = 0; i < cells.length; i++) {
+    cells[i].addEventListener('mousedown', onMouseDown);
+    cells[i].addEventListener('mouseenter', onMouseEnter);
+    cells[i].addEventListener('mouseup', onMouseUp);
+    cells[i].addEventListener('touchstart', onTouchStart, {passive:false});
+    cells[i].addEventListener('touchmove', onTouchMove, {passive:false});
+    cells[i].addEventListener('touchend', onTouchEnd);
+  }
+  
+  document.addEventListener('mouseup', function() { if (selecting) endSelection(); });
+}
+
+function getCell(r, c) {
+  return document.querySelector('.cell[data-row="'+r+'"][data-col="'+c+'"]');
+}
+
+function onMouseDown(e) {
+  e.preventDefault();
+  selecting = true;
+  selectionStart = {row:parseInt(e.target.dataset.row), col:parseInt(e.target.dataset.col)};
+  selectionEnd = {row:selectionStart.row, col:selectionStart.col};
+  updateSelection();
+}
+
+function onMouseEnter(e) {
+  if (!selecting) return;
+  selectionEnd = {row:parseInt(e.target.dataset.row), col:parseInt(e.target.dataset.col)};
+  updateSelection();
+}
+
+function onMouseUp() {
+  endSelection();
+}
+
+function onTouchStart(e) {
+  e.preventDefault();
+  var touch = e.touches[0];
+  var cell = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (cell && cell.classList.contains('cell')) {
+    selecting = true;
+    selectionStart = {row:parseInt(cell.dataset.row), col:parseInt(cell.dataset.col)};
+    selectionEnd = {row:selectionStart.row, col:selectionStart.col};
+    updateSelection();
+  }
+}
+
+function onTouchMove(e) {
+  e.preventDefault();
+  if (!selecting) return;
+  var touch = e.touches[0];
+  var cell = document.elementFromPoint(touch.clientX, touch.clientY);
+  if (cell && cell.classList.contains('cell')) {
+    selectionEnd = {row:parseInt(cell.dataset.row), col:parseInt(cell.dataset.col)};
+    updateSelection();
+  }
+}
+
+function onTouchEnd() {
+  endSelection();
+}
+
+function updateSelection() {
+  var cells = document.querySelectorAll('.cell.selected');
+  for (var i = 0; i < cells.length; i++) cells[i].classList.remove('selected');
+  
+  selectedCells = getCellsBetween(selectionStart, selectionEnd);
+  for (var i = 0; i < selectedCells.length; i++) {
+    var cell = getCell(selectedCells[i].row, selectedCells[i].col);
+    if (cell) cell.classList.add('selected');
+  }
+}
+
+function getCellsBetween(start, end) {
+  var cells = [];
+  var dRow = end.row - start.row;
+  var dCol = end.col - start.col;
+  
+  if (dRow === 0 && dCol === 0) return [start];
+  
+  var steps = Math.max(Math.abs(dRow), Math.abs(dCol));
+  var rStep = dRow === 0 ? 0 : dRow / steps;
+  var cStep = dCol === 0 ? 0 : dCol / steps;
+  
+  for (var i = 0; i <= steps; i++) {
+    cells.push({row:start.row + i * rStep, col:start.col + i * cStep});
+  }
+  return cells;
+}
+
+function endSelection() {
+  if (!selecting) return;
+  selecting = false;
+  
+  var selectedWord = '';
+  for (var i = 0; i < selectedCells.length; i++) {
+    selectedWord += grid[selectedCells[i].row][selectedCells[i].col];
+  }
+  var reversedWord = selectedWord.split('').reverse().join('');
+  
+  var found = null;
+  for (var w = 0; w < words.length; w++) {
+    var word = words[w].es.toUpperCase();
+    if (foundWords.indexOf(word) === -1) {
+      if (selectedWord === word || reversedWord === word) {
+        foundWords.push(word);
+        found = words[w];
+        highlightFound(selectedCells);
+        renderWordList();
+        updateCounter();
+        checkVictory();
+        break;
+      }
+    }
+  }
+  
+  var cells = document.querySelectorAll('.cell.selected');
+  for (var i = 0; i < cells.length; i++) cells[i].classList.remove('selected');
+  selectedCells = [];
+}
+
+function highlightFound(cells) {
+  for (var i = 0; i < cells.length; i++) {
+    var cell = getCell(cells[i].row, cells[i].col);
+    if (cell) cell.classList.add('found');
+  }
+}
+
+function capitalize(str) {
+  if (!str) return str;
+  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
+}
+
+function renderWordList() {
+  var html = '';
+  for (var i = 0; i < words.length; i++) {
+    var isFound = foundWords.indexOf(words[i].es.toUpperCase()) !== -1;
+    var text = isFound ? words[i][currentLang] : words[i][currentLang];
+    text = capitalize(text);
+    html += '<div class="word-item' + (isFound ? ' found' : '') + '">' + text + '</div>';
+  }
+  document.getElementById('wordList').innerHTML = html;
+}
+
+function updateCounter() {
+  document.getElementById('remainingCount').textContent = words.length - foundWords.length;
+}
+
+function updateLevelIndicator() {
+  var text = '';
+  if (isThematic && currentTheme) {
+    text = currentTheme.name;
+  } else {
+    var levels = {facil:'Fácil', normal:'Normal', dificil:'Difícil'};
+    text = levels[currentLevel] || 'Difícil';
+  }
+  document.getElementById('levelIndicator').textContent = text;
+}
+
+function checkVictory() {
+  if (foundWords.length === words.length) {
+    stopTimer();
+    document.getElementById('victory').classList.add('show');
+    
+    var scoreText = currentLang === 'es' ? 'Puntaje: ' : 'Score: ';
+    document.getElementById('victoryText').innerHTML = (currentLang === 'es' ? '¡Felicitaciones!' : 'Congratulations!') + '<br><span style="color:#ffcc00;font-size:24px;">' + scoreText + secondsElapsed + '</span>';
+    
+    if (!isThematic) {
+      var history = {games:[], last5Words:[]};
+      try { history = JSON.parse(localStorage.getItem('wordSearchHistory')) || history; } catch(e) {}
+      
+      var gameWords = [];
+      for (var i = 0; i < words.length; i++) gameWords.push(words[i].es);
+      
+      history.games.push({words:gameWords, found:foundWords, score:secondsElapsed, date:Date.now()});
+      if (history.games.length > 50) history.games = history.games.slice(-50);
+      
+      history.last5Words = [];
+      var start = Math.max(0, history.games.length - 5);
+      for (var g = start; g < history.games.length; g++) {
+        for (var w = 0; w < history.games[g].words.length; w++) {
+          if (history.last5Words.indexOf(history.games[g].words[w]) === -1) {
+            history.last5Words.push(history.games[g].words[w]);
+          }
+        }
+      }
+      
+      try { localStorage.setItem('wordSearchHistory', JSON.stringify(history)); } catch(e) {}
+    }
+  }
+}
+
+function toggleLanguage() {
+  currentLang = currentLang === 'es' ? 'en' : 'es';
+  document.getElementById('langToggle').textContent = currentLang === 'es' ? 'EN' : 'ES';
+  updateUIText();
+  renderWordList();
+  updateCounter();
+  updateExitButtonText();
+}
+
+function updateUIText() {
+  var t = currentLang === 'es' ? 
+    {remaining:'Palabras restantes', newGame:'Nuevo', congrats:'¡Felicitaciones!', playAgain:'Jugar de nuevo', exit:'Salir'} :
+    {remaining:'Words remaining', newGame:'New', congrats:'Congratulations!', playAgain:'Play again', exit:'Exit'};
+  
+  document.getElementById('newGameBtn').textContent = t.newGame;
+  document.getElementById('counter').innerHTML = t.remaining + ': <span id="remainingCount">' + (words.length - foundWords.length) + '</span>';
+  document.getElementById('victoryText').textContent = t.congrats;
+  document.getElementById('playAgainBtn').textContent = t.playAgain;
+}
+
+function updateExitButtonText() {
+  document.getElementById('exitBtn').textContent = currentLang === 'es' ? 'Salir' : 'Exit';
+}
+
+function exitGame() {
+  document.getElementById('gameScreen').classList.remove('active');
+  document.getElementById('langScreen').style.display = 'block';
+  document.getElementById('victory').classList.remove('show');
+  currentTheme = null;
+  isThematic = false;
+}
+
+function showThemeModal() {
+  var html = '';
+  for (var i = 0; i < THEMES.length; i++) {
+    html += '<button class="theme-option" data-index="'+i+'">'+THEMES[i].name+'</button>';
+  }
+  document.getElementById('themeList').innerHTML = html;
+  document.getElementById('themeModal').classList.add('show');
+  
+  document.querySelectorAll('.theme-option').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      selectTheme(parseInt(this.dataset.index));
+    });
+  });
+}
+
+// Event listeners
+document.getElementById('btnEs').addEventListener('click', function() { selectLanguage('es'); });
+document.getElementById('btnEn').addEventListener('click', function() { selectLanguage('en'); });
+document.getElementById('btnFacil').addEventListener('click', function() { selectLevel('facil'); });
+document.getElementById('btnNormal').addEventListener('click', function() { selectLevel('normal'); });
+document.getElementById('btnDificil').addEventListener('click', function() { selectLevel('dificil'); });
+document.getElementById('themeBtn').addEventListener('click', showThemeModal);
+document.getElementById('langToggle').addEventListener('click', toggleLanguage);
+document.getElementById('newGameBtn').addEventListener('click', newGame);
+document.getElementById('playAgainBtn').addEventListener('click', newGame);
+document.getElementById('exitBtn').addEventListener('click', exitGame);
+document.getElementById('instructionsBtn').addEventListener('click', function() { document.getElementById('instructionsModal').classList.add('show'); });
+document.getElementById('closeInstr').addEventListener('click', function() { document.getElementById('instructionsModal').classList.remove('show'); });
+document.getElementById('instructionsModal').addEventListener('click', function(e) { if (e.target === this) this.classList.remove('show'); });
+document.getElementById('closeThemeBtn').addEventListener('click', function() { document.getElementById('themeModal').classList.remove('show'); });
+  </script>
+</body>
+</html>
