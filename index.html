@@ -228,22 +228,29 @@
     <div id="langScreen" class="lang-screen">
       <h1>Word Search</h1>
       
-      <div class="option-group">
-        <h3 id="langLabel">Idioma / Language</h3>
+      <div class="option-group" id="langGroup">
+        <h3>Idioma / Language</h3>
         <button class="lang-btn" id="btnEs">Español</button>
         <button class="lang-btn" id="btnEn">English</button>
       </div>
       
-      <div class="option-group" id="difficultyGroup">
-        <h3 id="difficultyLabel">Nivel / Level</h3>
+      <div class="option-group" id="difficultyGroup" style="display:none;">
+        <h3>Nivel / Level</h3>
         <button class="option-btn level-btn" id="btnFacil">Fácil</button>
         <button class="option-btn level-btn" id="btnNormal">Normal</button>
         <button class="option-btn level-btn" id="btnDificil">Difícil</button>
+        <br><br>
+        <button class="btn btn-sec" id="backToLang">← Volver</button>
       </div>
       
-      <button class="option-btn" id="themeBtn" style="margin-top:20px;">Temático</button>
-      <br>
-      <button id="instructionsBtn">Instrucciones</button>
+      <div class="option-group" id="themeGroup" style="display:none;">
+        <h3>Tema / Theme</h3>
+        <button class="option-btn" id="themeBtn">Temático</button>
+        <br><br>
+        <button class="btn btn-sec" id="backToLang2">← Volver</button>
+      </div>
+      
+      <button id="instructionsBtn" style="margin-top:20px;">Instrucciones</button>
     </div>
     
     <!-- Pantalla de juego -->
@@ -509,10 +516,9 @@ function getRandomLetter() {
 
 function selectLanguage(lang) {
   currentLang = lang;
-  document.getElementById('langScreen').style.display = 'none';
-  document.getElementById('gameScreen').classList.add('active');
-  newGame();
-  updateExitButtonText();
+  document.getElementById('langGroup').style.display = 'none';
+  document.getElementById('difficultyGroup').style.display = 'block';
+  document.getElementById('themeGroup').style.display = 'block';
 }
 
 function selectLevel(level) {
@@ -534,6 +540,12 @@ function selectTheme(themeIndex) {
   document.getElementById('gameScreen').classList.add('active');
   newGame();
   updateExitButtonText();
+}
+
+function backToLang() {
+  document.getElementById('langGroup').style.display = 'block';
+  document.getElementById('difficultyGroup').style.display = 'none';
+  document.getElementById('themeGroup').style.display = 'none';
 }
 
 function newGame() {
@@ -606,7 +618,7 @@ function placeWords() {
   if (!dirs) dirs = DIRECTIONS['dificil'];
   
   for (var w = 0; w < words.length; w++) {
-    var word = words[w].es.toUpperCase();
+    var word = words[w][currentLang].toUpperCase();
     var placed = false;
     var attempts = 0;
     
@@ -758,7 +770,7 @@ function endSelection() {
   
   var found = null;
   for (var w = 0; w < words.length; w++) {
-    var word = words[w].es.toUpperCase();
+    var word = words[w][currentLang].toUpperCase();
     if (foundWords.indexOf(word) === -1) {
       if (selectedWord === word || reversedWord === word) {
         foundWords.push(word);
@@ -901,6 +913,8 @@ document.getElementById('btnEn').addEventListener('click', function() { selectLa
 document.getElementById('btnFacil').addEventListener('click', function() { selectLevel('facil'); });
 document.getElementById('btnNormal').addEventListener('click', function() { selectLevel('normal'); });
 document.getElementById('btnDificil').addEventListener('click', function() { selectLevel('dificil'); });
+document.getElementById('backToLang').addEventListener('click', backToLang);
+document.getElementById('backToLang2').addEventListener('click', backToLang);
 document.getElementById('themeBtn').addEventListener('click', showThemeModal);
 document.getElementById('langToggle').addEventListener('click', toggleLanguage);
 document.getElementById('newGameBtn').addEventListener('click', newGame);
