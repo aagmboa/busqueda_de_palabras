@@ -804,7 +804,8 @@ function capitalize(str) {
 function renderWordList() {
   var html = '';
   for (var i = 0; i < words.length; i++) {
-    var isFound = foundWords.indexOf(words[i].es.toUpperCase()) !== -1;
+    var wordKey = currentLang;
+    var isFound = foundWords.indexOf(words[i][wordKey].toUpperCase()) !== -1;
     var text = isFound ? words[i][currentLang] : words[i][currentLang];
     text = capitalize(text);
     html += '<div class="word-item' + (isFound ? ' found' : '') + '">' + text + '</div>';
